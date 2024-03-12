@@ -91,10 +91,14 @@ void processsChange(int index)
     }
   }else if(remainder == 1)
   {
-    int controlIndex = index/3;
-    SendUpdate('H',controlIndex);
+    if(buttonValues[index]==1){
+      int controlIndex = index/3;
+      SendUpdate('H',controlIndex);
+    }
   }else if (remainder == 2){
-    int controlIndex = index/3;
-    SendUpdate('L',controlIndex);
+    if(buttonValues[index]==1){
+      int controlIndex = index/3;
+      SendUpdate('L',controlIndex);
+    }
   }
 }
