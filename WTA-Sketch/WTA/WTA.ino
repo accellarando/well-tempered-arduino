@@ -9,11 +9,13 @@ int potIn = A0;
 bool enabled[] = {false, false,false,false,false};
 int sensorValue = 0;
 int previousSensor = 0;
-int buttonValues[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int buttonValues[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int previousValues[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int bounceDelay = 5;
 int ignorePin[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int threshold = 5;
+
+#define DEBUG_BUTTONS 0
 
 void setup() {
   for(int i=2;i<14;i++)
@@ -32,7 +34,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int rawSensor = analogRead(potIn);
-  sensorValue = map(rawSensor,0,1023,0,254);
+  sensorValue = map(rawSensor,0,1023,0,255);
   for(int i=2;i<14;i++)
   {
     buttonValues[i-2] = digitalRead(i);
@@ -59,10 +61,19 @@ void loop() {
     }
     
   }
-  
 
+  #if DEBUG_BUTTONS
+  char buffer[128];
+  sprintf(buffer, "buttonValues: 0 %d\t 1 %d\t 2 %d\t 3 %d\t 4 %d\t 5 %d\t 6 %d\t 7 %d\t 8 %d\t 9 %d\t 10 %d\t 11 %d\t 12 %d\t 13 %d\t 14 %d\t 15 %d\t\n",
+    buttonValues[0], buttonValues[1], buttonValues[2], buttonValues[3], buttonValues[4], buttonValues[5], buttonValues[6], buttonValues[7], buttonValues[8],
+    buttonValues[9], buttonValues[10], buttonValues[11], buttonValues[12], buttonValues[13], buttonValues[14], buttonValues[15]);
+  Serial.print(buffer);
+  delay(1000);
+  #else
   delay(10);
+  #endif
 
+  
 }
 
 //Print changed to Serial
@@ -76,6 +87,7 @@ void SendUpdate(char key, int value){
 //Logic to control what is printed to Serial and how array is layed out
 void processsChange(int index)
 {
+  //Serial.print(index);
   int remainder = index % 3;
   if(index == -1)
   {
