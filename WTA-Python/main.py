@@ -44,6 +44,18 @@ class Subject:
     def disable(self):
         self.enabled = False
 
+    ''' 
+    Experimenting with adding some overtones to the sound. I've got an organ-like timbre now
+    '''
+    def overtones(self, note, duration):
+        tone = pydub.generators.Sine(note,sample_rate=44100).to_audio_segment(duration=duration, volume=0)
+
+        # Generate some harmonics - play with these params for different timbres
+        harmonicIntensities = [-6, -10, -12, -14, -15, -16, -17, -18, -18, -19]
+        for harmonic_number in range(0, len(harmonicIntensities)):
+            tone = tone.overlay(pydub.generators.Sawtooth(note*(harmonic_number+1),sample_rate=44100).to_audio_segment(duration=duration, volume=harmonicIntensities[harmonic_number]))
+        return tone
+
     '''
     Play the next note in the melody.
 
@@ -66,9 +78,11 @@ class Subject:
             print("I: "+self.name + " will play " + str(nextNote) + " at " + str(noteHz) + "Hz")
             # check for fast notes
             if self.melody[(self.pos + 1) % len(self.melody)] != '+':
-                return pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/2.0, volume=-10) 
+                return self.overtones(noteHz, tempo)
+                #return pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/2.0, volume=-10) 
 
-            segment = pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/4.0, volume=-10)
+            #segment = pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/4.0, volume=-10)
+            segment = self.overtones(noteHz, tempo/2.0)
             
             self.pos = (self.pos+1) % len(self.melody)
             return segment + self.play(tempo/2.0)
