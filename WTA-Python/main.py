@@ -111,7 +111,6 @@ MAX_DURATION = 1500
 duration = MIN_DURATION
 
 silence = AudioSegment.silent(duration=duration)
-cache = {}
 
 def adjustTempo(tempo: int):
     global duration, silence
