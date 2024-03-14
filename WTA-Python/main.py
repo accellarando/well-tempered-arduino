@@ -6,8 +6,8 @@ import pydub.generators
 from pydub import AudioSegment
 from pydub.playback import play
 import serial
-import re
 import sys
+from threading import *
 
 class Subject:
     enabled = False # whether this Subject is being played right now
@@ -53,11 +53,8 @@ class Subject:
         # Generate some harmonics - play with these params for different timbres
         harmonicIntensities = [-6, -10, -12, -14, -15, -16, -17, -18, -18, -19]
         for harmonic_number in range(0, len(harmonicIntensities)):
-            if harmonic_number % 2 == 0:
-                tone = tone.overlay(pydub.generators.Sawtooth(note*(harmonic_number+1),sample_rate=44100).to_audio_segment(duration=duration, volume=harmonicIntensities[harmonic_number]))
-            else:
-                tone = tone.overlay(pydub.generators.Sine(note*(harmonic_number+1),sample_rate=44100).to_audio_segment(duration=duration, volume=harmonicIntensities[harmonic_number]))
-
+            tone = tone.overlay(pydub.generators.Sine(note * (harmonic_number + 1), sample_rate=44100).to_audio_segment(
+                duration=duration, volume=harmonicIntensities[harmonic_number]))
         return tone
 
     '''
@@ -114,7 +111,10 @@ MIN_DURATION = 100
 MAX_DURATION = 1500
 duration = MIN_DURATION
 
+Play_Lock: threading.Lock = threading.Lock()
+NEXT_SEQ: AudioSegment = None
 silence = AudioSegment.silent(duration=duration)
+
 
 def adjustTempo(tempo: int):
     global duration, silence
@@ -195,6 +195,15 @@ def setupSerial():
     ser.open()
     return ser
 
+
+def play_next_Seq():
+    while True:
+        Play_Lock.acquire()
+        next = NEXT_SEQ.append(silence, 0)
+        Play_Lock.release()
+        play(next)
+
+
 if __name__ == "__main__":
     setupSubjects()
 
@@ -202,7 +211,7 @@ if __name__ == "__main__":
     ser = setupSerial()
     silence = AudioSegment.silent(duration=duration)
     output = silence
-
+    Thread(target=play_next_Seq).start()
     while True:
         # poll serial port
         while ser.in_waiting: # while could be risky! fuck it up!
@@ -215,5 +224,8 @@ if __name__ == "__main__":
             if(note):
                 output = output.overlay(note)
                 # this ^ throws up a bunch of logs in the terminal, figure out how to silence those? :(
-        play(output)
+        # play(output)
+        Play_Lock.acquire()
+        NEXT_SEQ = output
+        Play_Lock.release()
     ser.close()
