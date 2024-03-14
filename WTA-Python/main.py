@@ -8,6 +8,8 @@ from pydub.playback import play
 import serial
 import sys
 from threading import *
+import threading
+import time
 
 class Subject:
     enabled = False # whether this Subject is being played right now
@@ -80,9 +82,7 @@ class Subject:
             # check for fast notes
             if self.melody[(self.pos + 1) % len(self.melody)] != '+':
                 return self.overtones(noteHz, tempo)
-                #return pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/2.0, volume=-10) 
 
-            #segment = pydub.generators.Square(noteHz,sample_rate=44100).to_audio_segment(duration=tempo/4.0, volume=-10)
             segment = self.overtones(noteHz, tempo/2.0)
             
             self.pos = (self.pos+1) % len(self.melody)
@@ -113,6 +113,7 @@ duration = MIN_DURATION
 
 Play_Lock: threading.Lock = threading.Lock()
 NEXT_SEQ: AudioSegment = None
+segmentQueue = []
 silence = AudioSegment.silent(duration=duration)
 
 
@@ -199,9 +200,13 @@ def setupSerial():
 def play_next_Seq():
     while True:
         Play_Lock.acquire()
-        next = NEXT_SEQ.append(silence, 0)
-        Play_Lock.release()
+        if len(segmentQueue) == 0:
+            Play_Lock.release()
+            continue
+        #next = NEXT_SEQ #.append(silence, 0)
+        next = segmentQueue.pop(0)
         play(next)
+        Play_Lock.release()
 
 
 if __name__ == "__main__":
@@ -224,8 +229,11 @@ if __name__ == "__main__":
             if(note):
                 output = output.overlay(note)
                 # this ^ throws up a bunch of logs in the terminal, figure out how to silence those? :(
-        # play(output)
+        #play(output)
+        # export to mp3:
+        #output.export("output.mp3", format="mp3")
         Play_Lock.acquire()
-        NEXT_SEQ = output
+        #NEXT_SEQ = output
+        segmentQueue.append(output)
         Play_Lock.release()
     ser.close()
