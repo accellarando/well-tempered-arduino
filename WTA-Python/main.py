@@ -53,7 +53,7 @@ class Subject:
         # Generate some harmonics - play with these params for different timbres
         harmonicIntensities = [-6, -10, -12, -14, -15, -16, -17, -18, -18, -19]
         for harmonic_number in range(0, len(harmonicIntensities)):
-            tone = tone.overlay(pydub.generators.Sawtooth(note*(harmonic_number+1),sample_rate=44100).to_audio_segment(duration=duration, volume=harmonicIntensities[harmonic_number]))
+            tone = tone.overlay(pydub.generators.Sawtooth(note**(harmonic_number+1),sample_rate=44100).to_audio_segment(duration=duration, volume=harmonicIntensities[harmonic_number]))
         return tone
 
     '''
