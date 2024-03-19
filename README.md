@@ -8,7 +8,7 @@ The user can enable, disable, and transpose up to 5 of the selected melodies at 
 The hardware consist of 1 enable/disable button, a transpose up button and transpose down button per melody for a total of 15 buttons. One potentiometer to control the tempo and 1 Arduino.
 
 ## Arduino Software
-The program on the Arduino polls the buttons, digitally debounces them, Then formats and sends that information over serial to the PC program.
+The program on the Arduino polls the buttons, digitally debounces them, then formats and sends that information over serial to the PC program.
 
 ## PC software
 The PC program reads in a processes serial from the Arduino then modifies and combines the active melodies into a single output that is then played.
